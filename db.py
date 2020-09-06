@@ -88,6 +88,34 @@ def rmv_db(db, fname, user_id):
     print("Success")
     return 0
 
+def set_db(db, fname, key, data):
+    print("set_db " + db)
+
+    if not os.path.exists(db):
+        print("Failed: No DB")
+        return -1
+
+    db_tmp = db+".tmp"
+    with open(db, mode='r') as inp, open(db_tmp, mode='w') as out:
+        reader = csv.DictReader(inp, fieldnames = fname)
+        writer = csv.DictWriter(out, fieldnames = fname)
+
+        header = True
+        for row in reader:
+            if header:
+                header = False
+                writer.writerow(row)
+                continue
+            row_data = row
+            row_data[key] = data
+            writer.writerow(row_data)
+
+    os.rename(db_tmp, db)
+    print("Success")
+    return 0
+
+
+
 def dump_db(db, fname):
     print("get_all_db " + db)
     if not os.path.exists(db):
@@ -211,7 +239,7 @@ def dump_record(data):
 def extract_score(data):
     count = 0
     for i in range(5):
-        if (score & (1<<i)):
+        if (data & (1<<i)):
             count = count + 1
     return count
 
@@ -225,15 +253,18 @@ def get_record_db(user_id):
     else:
         return "Error: No such user?"
 
+
+### WEEKLY REPORT
 def get_weekly_db():
     ll = dump_db(DB_REC, fname_rec)
     num = len(ll)
     total = 0
     for i in range(len(ll)):
         rec = int(ll[i]['Record'])
-        ll[i]['Record'] = rec
-        penalty = (rec - 5)*1000
-        ll[i]['penalty'] = penalty
+        score = extract_score(rec)
+        ll[i]['Score'] = score
+        penalty = (score - 5)*1000
+        ll[i]['Penalty'] = penalty
         total = total - penalty
 
     sort = sorted(ll, key = lambda i : i['Record'], reverse = True)
@@ -249,20 +280,22 @@ def get_weekly_db():
             break
 
     for i in range(count):
-        sort[i]['penalty'] = sort[i]['penalty'] + (total/count)
+        sort[i]['Penalty'] = sort[i]['Penalty'] + (total/count)
 
-    res = "*{:<18}".format("Name") + "Record     " + "Penalty*\n"
+    res = "*{:<18}".format("Name") + "Score      " + "Penalty*\n"
     for i in range(len(ll)):
         name = sort[i]['User Name']
         if name == "":
             name = "Unknown"
         res = res + "*{:<18}* ".format(name)
-        res = res + str(sort[i]['Record']) + "/5      "
-        res = res + "*" + str(sort[i]['penalty']) + " won*\n"
-
+        res = res + str(sort[i]['Score']) + "/5      "
+        res = res + "*" + str(sort[i]['Penalty']) + " won*\n"
 
     return res
 
 
+def erase_record_db():
+    set_db(DB_REC, fname_rec, "Record", 0)
+    return 0
 
 

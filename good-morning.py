@@ -166,6 +166,8 @@ def weekly_report():
         attachments=[]
     )
 
+    db.erase_record_db()
+
     return make_response("", 200)
 
 
@@ -291,9 +293,6 @@ def event():
     if ("challenge" in slack_event):
         return make_response(slack_event["challenge"], 200,
                              {"content-type": "application/json"})
-    if (slack_event["channel"] != WAKEUP_TIME["channel"]):
-        make_response("", 200)
-
     event_type = slack_event["event"]["type"]
     user_id = slack_event["authed_users"][0]
     if (event_type == "channel_left"):
