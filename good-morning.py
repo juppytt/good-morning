@@ -1,6 +1,7 @@
 from flask import Flask, request, make_response, Response
 import os
 import json
+import db
 
 from slackclient import SlackClient
 
@@ -27,6 +28,9 @@ WAKEUP_TIME[user_id] = {
     "time": {}
 }
 
+
+## Good morning common functions
+
 def gm_main():
     settime_dm = slack_client.api_call(
       "chat.postMessage",
@@ -39,18 +43,23 @@ def gm_main():
         "color": "#3AA3E3",
         "attachment_type": "default",
         "actions": [{
-          "name": "set_time",
-          "text": ":sunny: Set wake-up time",
-          "type": "button",
-          "value": "set_time"
+            "name": "set_time",
+            "text": ":memo: Set wake-up time",
+            "type": "button",
+            "value": "set_time"
+        },
+        {
+            "name": "check_time",
+            "text": ":bookmark: Check wake-up time",
+            "type": "button",
+            "value": "check_time"
         }]
       }]
     )
 
-gm_main()
+#gm_main()
 
-
-def set_time(user_id, trigger_id):
+def set_time(user_id, trigger_id, user_name):
     # Add the message_ts to the user's order info
     print("set time!!")
 
@@ -73,59 +82,114 @@ def set_time(user_id, trigger_id):
         }
     )
 
-    #print(open_dialog)
-
     # Update the message to show that we're in the process of taking their order
+    text=":pencil: [" + user_name +"] Taking your request..."
     slack_client.api_call(
         "chat.postMessage",
         channel=WAKEUP_TIME[user_id]["channel"],
-        text=":pencil: Taking your request...",
+        text=text,
         attachments=[]
     )
 
-@app.route("/slack/main", methods=["POST"])
+def check_time(user_id, user_name):
+
+    res = db.get_time_db(user_id)
+    if (res < 0):
+        return make_response("", 500)
+
+    text = ":sunny: *" + user_name + "*'s wake-up time: *" + res + "*"
+    slack_client.api_call(
+        "chat.postMessage",
+        channel=WAKEUP_TIME[user_id]["channel"],
+        text = text,
+        attachments=[]
+    )
+
+    return make_response("", 200)
+
+def record(user_id, user_name):
+    return make_response("", 200)
+
+## Slack slash commands
+
+# Slack bot help message
+@app.route("/slack/help", methods=["POST"])
 def gm_main_called():
     gm_main()
     return make_response("", 200)
 
 @app.route("/slack/check/time", methods=["POST"])
-def check_time():
-    # TODO: load database and return set time
+def slash_check_time():
+    # Parse the request payload
+    message_action = request.form
+    print(message_action)
 
-@app.route("/slack/check/status", methods=["POST"])
+    user_id = message_action["user_id"]
+    user_name = message_action["user_name"]
+    return check_time(user_id, user_name)
+
+#@app.route("/slack/check/status", methods=["POST"])
     # TODO: load database and return status
 
 
+# from /set slash command
 @app.route("/slack/set", methods=["POST"])
-def message_actions():
-    # Parse the request payload
-
+def slash_set_time():
     message_action = request.form
-    #message_action = json.loads(request.form["payload"])
     print(message_action)
 
     user_id = message_action["user_id"]
     trigger_id = message_action["trigger_id"]
-    set_time(user_id, trigger_id)
+    user_name = message_action["user_name"]
+    set_time(user_id, trigger_id, user_name)
 
     return make_response("", 200)
+
+# record wake-up time
+@app.route("/slack/record", methods=["POST"])
+def slash_record():
+    message_action = request.form
+    print(message_action)
+
+    user_id = message_action["user_id"]
+    user_name = message_action["user_name"]
+
+    return record(user_id, user_name)
+
+
+## Slack interactive
 
 @app.route("/slack/interactive", methods=["POST"])
 def interactive():
     message_action = json.loads(request.form["payload"])
     user_id= message_action["user"]["id"]
+    user_name = message_action["user"]["name"]
     print(message_action)
 
     if message_action["type"] == "interactive_message":
         trigger_id = message_action["trigger_id"]
-        set_time(user_id, trigger_id)
+        action_name = message_action["actions"][0]["name"]
+        if (action_name == "set_time"):
+            set_time(user_id, trigger_id, user_name)
+        elif (action_name == "check_time"):
+            check_time(user_id, user_name)
 
     elif message_action["type"] == "dialog_submission":
 
-        text=":white_check_mark: Wake-up time set!\n"
-        text = text + "*" + message_action["user"]["name"] + "*"
-        text = text + "'s wakeup-time: *" + message_action["submission"]["time"] + "*"
+        time = message_action["submission"]["time"]
+        if (db.set_time_db(user_id, time) < 0):
+            text = ":warning: Error... Contact the admin please :("
+            slack_client.api_call(
+                "chat.postMessage",
+                channel=WAKEUP_TIME[user_id]["channel"],
+                text = text,
+                attachments=[]
+            )
+            return make_response("", 500)
 
+        text=":white_check_mark: ["+ user_name +"] Wake-up time set!\n"
+        text = text + ":sunny: *" + user_name + "*"
+        text = text + "'s wakeup-time: *" + time + "*"
 
         # Update the message to show that we're in the process of taking their order
         slack_client.api_call(
