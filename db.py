@@ -96,7 +96,7 @@ def dump_db(db, fname):
 
     res = []
     with open(db, mode='r') as csv_file:
-        reader = csv.Dictreader(csv_file, fieldnames = fname)
+        reader = csv.DictReader(csv_file, fieldnames = fname)
         header = True
         for row in reader:
             if header:
@@ -116,13 +116,13 @@ def add_db_user(user_id):
     return add_db(DB_REC, fname_rec, {"User Id": user_id, "User Name": "", "Record": 0})
 
 def set_user_name_db(user_id, user_name):
-    data = query_db(DB_REC, fname_rec)
+    data = query_db(DB_REC, user_id)
     if (data == ""):
         print("Failed! No user " + user_id)
         return -1
     if (data["User Name"] != user_name):
         data["User Name"] = user_name
-        mod_db(DB_REC, fname_rec, data)
+        mod_db(DB_REC, user_id, fname_rec, data)
     return 0
 
 
@@ -226,10 +226,42 @@ def get_record_db(user_id):
         return "Error: No such user?"
 
 def get_weekly_db():
-    res = dump_db(DB_SET, fname_set)
-    for i in range(len(res)):
-        print(res[i])
-    return 0
+    ll = dump_db(DB_REC, fname_rec)
+    num = len(ll)
+    total = 0
+    for i in range(len(ll)):
+        rec = int(ll[i]['Record'])
+        ll[i]['Record'] = rec
+        penalty = (rec - 5)*1000
+        ll[i]['penalty'] = penalty
+        total = total - penalty
+
+    sort = sorted(ll, key = lambda i : i['Record'], reverse = True)
+
+    print(sort)
+
+    top = sort[0]['Record']
+    count = 0
+    for  i in range(len(ll)):
+        if sort[i]['Record'] == top:
+            count = count+1
+        else:
+            break
+
+    for i in range(count):
+        sort[i]['penalty'] = sort[i]['penalty'] + (total/count)
+
+    res = "*{:<18}".format("Name") + "Record     " + "Penalty*\n"
+    for i in range(len(ll)):
+        name = sort[i]['User Name']
+        if name == "":
+            name = "Unknown"
+        res = res + "*{:<18}* ".format(name)
+        res = res + str(sort[i]['Record']) + "/5      "
+        res = res + "*" + str(sort[i]['penalty']) + " won*\n"
+
+
+    return res
 
 
 

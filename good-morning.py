@@ -20,8 +20,8 @@ WAKEUP_TIME = {}
 
 # Send a message to the user asking if they would like coffee
 user_id = "U019EJPBFFH"
-channel_id = "C019NLH2ULE"
-
+#channel_id = "C019NLH2ULE"
+channel_id = 'C019ZB2HK38'
 # Create a new order for this user in the WAKEUP_TIME dictionary
 WAKEUP_TIME = {
     "channel": channel_id,
@@ -140,7 +140,7 @@ def check_score(user_id, user_name):
 
     res = db.get_record_db(user_id)
 
-    text = ":sunny: *" + user_name + "*'s wake-up score: *\n"
+    text = ":sunny: *" + user_name + "*'s wake-up score: \n"
     text = text + res
     slack_client.api_call(
         "chat.postMessage",
@@ -150,6 +150,24 @@ def check_score(user_id, user_name):
     )
 
     return make_response("", 200)
+
+
+# weekly report
+def weekly_report():
+    message_action = request.form
+    print(message_action)
+
+    res = db.get_weekly_db()
+
+    slack_client.api_call(
+        "chat.postMessage",
+        channel=WAKEUP_TIME["channel"],
+        text = res,
+        attachments=[]
+    )
+
+    return make_response("", 200)
+
 
 ## Slack slash commands
 
@@ -213,14 +231,6 @@ def slash_record():
 
     return record_time(user_id, user_name)
 
-# weekly report
-@app.route("/slack/weekly", methods=["POST"])
-def slash_weekly():
-    message_action = request.form
-    print(message_action)
-
-    db.get_weekly_db()
-    return make_response("", 200)
 
 ## Slack interactive
 @app.route("/slack/interactive", methods=["POST"])
@@ -281,6 +291,8 @@ def event():
     if ("challenge" in slack_event):
         return make_response(slack_event["challenge"], 200,
                              {"content-type": "application/json"})
+    if (slack_event["channel"] != WAKEUP_TIME["channel"]):
+        make_response("", 200)
 
     event_type = slack_event["event"]["type"]
     user_id = slack_event["authed_users"][0]
@@ -288,6 +300,8 @@ def event():
         db.rmv_db_user(user_id)
     elif (event_type == "member_joined_channel"):
         db.add_db_user(user_id)
+    elif (event_type == "app_mention"):
+        weekly_report()
 
     return make_response("", 200)
 
