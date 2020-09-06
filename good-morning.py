@@ -19,8 +19,9 @@ app = Flask(__name__)
 WAKEUP_TIME = {}
 
 # Send a message to the user asking if they would like coffee
-user_id = "U019EJPBFFH"
+#user_id = "U019EJPBFFH"
 #channel_id = "C019NLH2ULE"
+user_id = "U0123456789"
 channel_id = 'C019ZB2HK38'
 # Create a new order for this user in the WAKEUP_TIME dictionary
 WAKEUP_TIME = {
