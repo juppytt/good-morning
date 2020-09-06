@@ -140,14 +140,15 @@ def rmv_db_user(user_id):
     return res
 
 ### ADD USER
-def add_db_user(user_id):
-    return add_db(DB_REC, fname_rec, {"User Id": user_id, "User Name": "", "Record": 0})
+def add_db_user(user_id, user_name=""):
+    return add_db(DB_REC, fname_rec, {"User Id": user_id, "User Name": user_name, "Record": 0})
 
 def set_user_name_db(user_id, user_name):
     data = query_db(DB_REC, user_id)
     if (data == ""):
-        print("Failed! No user " + user_id)
-        return -1
+        print("No user " + user_id +", add user")
+        add_db_user(user_id, user_name)
+        return 0
     if (data["User Name"] != user_name):
         data["User Name"] = user_name
         mod_db(DB_REC, user_id, fname_rec, data)
@@ -215,7 +216,11 @@ def record_time_db(user_id, user_name):
     res = is_success(user_id, time)
 
     if (res >= 0):
-        record = query_db(DB_REC, user_id)["Record"]
+        data = query_db(DB_REC, user_id)
+        if (data == ""):
+            print("No user " + user_id + ", add user")
+            add_db_user(user_id, user_name)
+        record = data["Record"]
         record = int(record)
         record = record | (1<<current.weekday())
         mod_db(DB_REC, user_id, fname_rec,
