@@ -272,7 +272,7 @@ def interactive():
         db.set_user_name_db(user_id, user_name)
         text=":white_check_mark: ["+ user_name +"] Wake-up time set!\n"
         text = text + ":sunny: *" + user_name + "*"
-        text = text + "'s wakeup-time: *" + time + "*"
+        text = text + "'s wake-up time: *" + time + "*"
 
         # Update the message to show that we're in the process of taking their order
         slack_client.api_call(
