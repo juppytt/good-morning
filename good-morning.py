@@ -269,7 +269,11 @@ def interactive():
                 attachments=[]
             )
             return make_response("", 500)
-        db.set_user_name_db(user_id, user_name)
+        try:
+            db.set_user_name_db(user_id, user_name)
+        except:
+            print("set_user error")
+
         text=":white_check_mark: ["+ user_name +"] Wake-up time set!\n"
         text = text + ":sunny: *" + user_name + "*"
         text = text + "'s wake-up time: *" + time + "*"
