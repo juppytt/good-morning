@@ -256,12 +256,18 @@ def get_record_db(user_id):
     else:
         return "Error: No such user?"
 
-
+skip_name = "honjacoffee"
 ### WEEKLY REPORT
 def get_weekly_db():
     ll = dump_db(DB_REC, fname_rec)
     num = len(ll)
     total = 0
+
+    for i in range(len(ll)):
+        if ll[i]['User Name'] == skip_name:
+            del ll[i]
+            break
+
     for i in range(len(ll)):
         rec = int(ll[i]['Record'])
         score = extract_score(rec)
@@ -298,7 +304,9 @@ def get_weekly_db():
 
 
 def erase_record_db():
-    set_db(DB_REC, fname_rec, "Record", 0)
+    current = datetime.now()
+    if current.weekday() >= 5:
+        set_db(DB_REC, fname_rec, "Record", 0)
     return 0
 
 

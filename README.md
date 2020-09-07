@@ -3,7 +3,12 @@ slack bot for wake-up mission
 
 
 ## Requirements
-* flask
-* json
-* slackclient
-* ngrok
+* python packages
+    * flask
+    * json
+    * slackclient
+    * datetime
+    * csv
+
+* ngrok (with account)
+* Your own Slack app & SLACK_BOT_TOKEN
