@@ -217,6 +217,7 @@ def record_time_db(user_id, user_name):
 
     if (res >= 0):
         add_db_user(user_id, user_name)
+        data = query_db(DB_REC, user_id)
         record = data["Record"]
         record = int(record)
         record = record | (1<<current.weekday())
