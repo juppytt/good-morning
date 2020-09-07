@@ -272,7 +272,7 @@ def interactive():
         try:
             db.set_user_name_db(user_id, user_name)
         except:
-            print("set_user error")
+            print("set_user_name error")
 
         text=":white_check_mark: ["+ user_name +"] Wake-up time set!\n"
         text = text + ":sunny: *" + user_name + "*"
