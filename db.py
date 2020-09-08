@@ -1,5 +1,6 @@
 import csv
 import os
+import shutil
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -19,6 +20,11 @@ def init_db(db, fname):
     with open(db, mode='w') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames = fname)
         writer.writeheader()
+
+    db_copy = db+".copy"
+    shutil.copy2(db, db_copy)
+
+
 
 def query_db(db, user_id):
     if not os.path.exists(db):
@@ -54,6 +60,9 @@ def mod_db(db, user_id, fname, data):
                 writer.writerow(row)
 
     os.rename(db_tmp, db)
+    db_copy = db+".copy"
+    shutil.copy2(db, db_copy)
+
     print("Success")
     return 0
 
@@ -67,6 +76,9 @@ def add_db(db, fname, data):
         writer = csv.DictWriter(csv_file, fieldnames = fname)
         print(data)
         writer.writerow(data)
+
+    db_copy = db+".copy"
+    shutil.copy2(db, db_copy)
 
     print("Success")
     return 0
@@ -89,6 +101,9 @@ def rmv_db(db, fname, user_id):
                 writer.writerow(row)
 
     os.rename(db_tmp, db)
+    db_copy = db+".copy"
+    shutil.copy2(db, db_copy)
+
     print("Success")
     return 0
 
@@ -115,6 +130,10 @@ def set_db(db, fname, key, data):
             writer.writerow(row_data)
 
     os.rename(db_tmp, db)
+    db_copy = db+".copy"
+    shutil.copy2(db, db_copy)
+
+
     print("Success")
     return 0
 
