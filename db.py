@@ -261,7 +261,12 @@ skip_name = "honjacoffee"
 def get_weekly_db():
     ll = dump_db(DB_REC, fname_rec)
     num = len(ll)
-    total = 0
+    total_penalty = 0
+    weekday = datetime.now().weekday()
+    total_score = weekday+1
+    if weekday > 4:
+        total_score = 5
+
 
     for i in range(len(ll)):
         if ll[i]['User Name'] == skip_name:
@@ -272,9 +277,9 @@ def get_weekly_db():
         rec = int(ll[i]['Record'])
         score = extract_score(rec)
         ll[i]['Score'] = score
-        penalty = (score - 5)*1000
+        penalty = (score - total_score)*1000
         ll[i]['Penalty'] = penalty
-        total = total - penalty
+        total_penalty = total_penalty - penalty
 
     sort = sorted(ll, key = lambda i : i['Record'], reverse = True)
 
@@ -289,7 +294,7 @@ def get_weekly_db():
             break
 
     for i in range(count):
-        sort[i]['Penalty'] = sort[i]['Penalty'] + (total/count)
+        sort[i]['Penalty'] = sort[i]['Penalty'] + (total_penalty/count)
 
     res = "*{:<18}".format("Name") + "Score      " + "Penalty*\n"
     for i in range(len(ll)):
@@ -297,7 +302,7 @@ def get_weekly_db():
         if name == "":
             name = "Unknown"
         res = res + "*{:<18}* ".format(name)
-        res = res + str(sort[i]['Score']) + "/5      "
+        res = res + str(sort[i]['Score']) + ("/%d      " % total_score)
         res = res + "*" + str(sort[i]['Penalty']) + " won*\n"
 
     return res
