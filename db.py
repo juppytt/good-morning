@@ -10,8 +10,8 @@ fname_set = ['User Id', 'Time']
 DB_REC = "rec.csv"
 fname_rec = ['User Id', 'User Name', 'Record']
 
-DB_BANK = "bank.csv"
-fname_bank = ['User Id', 'Amount']
+DB_BALANCE = "balance.csv"
+fname_balance = ['User Id', 'Amount']
 
 
 ### CSV database common functions
@@ -141,7 +141,7 @@ def dump_db(db, fname):
 def rmv_db_user(user_id):
     res = rmv_db(DB_SET, fname_set, user_id)
     res = res | rmv_db(DB_REC, fname_rec, user_id)
-    res = res | rmv_db(DB_BANK, fname_bank, user_id)
+    res = res | rmv_db(DB_balance, fname_balance, user_id)
     return res
 
 ### ADD USER
@@ -151,9 +151,9 @@ def add_db_user(user_id, user_name=""):
     if (data == "" or data["User Name"] == ""):
         res = res |  add_db(DB_REC, fname_rec, {"User Id": user_id, "User Name": user_name, "Record": 0})
 
-    data = query_db(DB_BANK, user_id)
+    data = query_db(DB_balance, user_id)
     if (data == ""):
-        res = res |  add_db(DB_BANK, fname_bank, {"User Id": user_id, "Amount": 10000})
+        res = res |  add_db(DB_balance, fname_balance, {"User Id": user_id, "Amount": 10000})
 
 
     return res
@@ -251,6 +251,11 @@ def dump_record(data):
 
     text = text + (" *%d/5*" % count)
     return text
+
+def dump_balance(data):
+    text = "*%s won*" % data
+    return text
+
 def extract_score(data):
     count = 0
     for i in range(5):
@@ -267,6 +272,17 @@ def get_record_db(user_id):
 
     else:
         return "Error: No such user?"
+
+def get_balance_db(user_id):
+    print("get_balance_db: " + user_id)
+    data = query_db(DB_BALANCE, user_id)
+    if data is not "":
+        data = data["Amount"]
+        return dump_balance(data)
+
+    else:
+        return "Error: No such user?"
+
 
 skip_name = "honjacoffee"
 
@@ -311,9 +327,14 @@ def get_penalty():
 
 
 def get_weekly_db():
+
+    weekday = datetime.now().weekday()
+    total_score = weekday+1
+    if weekday > 4:
+        total_score = 5
     data = get_penalty()
     res = "*{:<18}".format("Name") + "Score      " + "Penalty*\n"
-    for i in range(len(ll)):
+    for i in range(len(data)):
         name = data[i]['User Name']
         if name == "":
             name = "Unknown"
@@ -333,15 +354,15 @@ def update_penalty_db():
     print("update_penalty_db")
     data = get_penalty()
     for i in range(len(data)):
-        bank_data = query_db(DB_BANK, data[i]['User Id'])
-        if bank_data == "":
+        balance_data = query_db(DB_BALANCE, data[i]['User Id'])
+        if balance_data == "":
             print("Error! no user " + data[i]['User Id'])
             continue
-        amount = int(bank_data['Amount'])
+        amount = int(balance_data['Amount'])
         amount = amount + data[i]['Penalty']
-        new = bank_data
+        new = balance_data
         new['Amount'] = amount
-        mod_db(DB_BANK, data[i]['User Id'], fname_bank, new)
+        mod_db(DB_balance, data[i]['User Id'], fname_balance, new)
     print("Update_penalty_db Success")
 
 def flush_weekly():

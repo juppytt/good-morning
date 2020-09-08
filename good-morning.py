@@ -39,7 +39,7 @@ WAKEUP_TIME = {
 ## Good morning common functions
 
 def gm_main():
-    settime_dm = slack_client.api_call(
+    gm_message = slack_client.api_call(
       "chat.postMessage",
       as_user=True,
       channel=channel_id,
@@ -62,14 +62,35 @@ def gm_main():
             "value": "set_time"
         },
         {
+            "name": "check_top",
+            "text": ":bookmark: Check my...",
+            "type": "button",
+            "value": "check_top"
+        }
+        ]
+
+      }]
+    )
+def gm_check():
+    gm_message = slack_client.api_call(
+      "chat.postMessage",
+      as_user=True,
+      channel=channel_id,
+        text=":bookmark: What do you want to check? ",
+      attachments=[{
+        "text": "",
+        "callback_id": user_id + "set_time_form",
+        "color": "#3AA3E3",
+        "attachment_type": "default",
+        "actions": [{
             "name": "check_time",
-            "text": ":bookmark: Check wake-up time",
+            "text": ":bookmark: Check my wake-up time",
             "type": "button",
             "value": "check_time"
         },
         {
             "name": "check_score",
-            "text": ":bookmark: Check your score",
+            "text": ":bookmark: Check my score",
             "type": "button",
             "value": "check_score"
         },
@@ -78,11 +99,17 @@ def gm_main():
             "text": ":money_with_wings: Check penalty",
             "type": "button",
             "value": "check_penalty"
-        }
-        ]
-
+        },
+        {
+            "name": "check_balance",
+            "text": ":money_with_wings: Check my balance",
+            "type": "button",
+            "value": "check_balance"
+        }]
       }]
     )
+
+
 
 #gm_main()
 
@@ -165,6 +192,20 @@ def check_score(user_id, user_name):
     )
 
     return make_response("", 200)
+
+def check_balance(user_id, user_name):
+    res = db.get_balance_db(user_id)
+    text = ":money_with_wings: *" + user_name + "*'s balance:   "
+    text = text + res + "\n"
+    slack_client.api_call(
+        "chat.postMessage",
+        channel=WAKEUP_TIME["channel"],
+        text = text,
+        attachments=[]
+    )
+
+    return make_response("", 200)
+
 
 
 # weekly report (penalty report)
@@ -265,12 +306,14 @@ def interactive():
             check_time(user_id, user_name)
         elif action_name == "record_time":
             return record_time(user_id, user_name)
-
+        elif action_name == "check_top":
+            return gm_check()
         elif action_name == "check_score":
             return check_score(user_id, user_name)
         elif action_name == "check_penalty":
             return penalty_report()
-
+        elif action_name == "check_balance":
+            return check_balance(user_id, user_name)
 
     elif message_type == "dialog_submission":
         time = message_action["submission"]["time"]
