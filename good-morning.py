@@ -69,10 +69,17 @@ def gm_main():
         },
         {
             "name": "check_score",
-            "text": ":bookmark: Check wake-up mission score",
+            "text": ":bookmark: Check your score",
             "type": "button",
             "value": "check_score"
-        }]
+        },
+        {
+            "name": "check_penalty",
+            "text": ":money_with_wings: Check penalty",
+            "type": "button",
+            "value": "check_penalty"
+        }
+        ]
 
       }]
     )
@@ -160,8 +167,8 @@ def check_score(user_id, user_name):
     return make_response("", 200)
 
 
-# weekly report
-def weekly_report():
+# weekly report (penalty report)
+def penalty_report():
     message_action = request.form
     print(message_action)
 
@@ -263,6 +270,8 @@ def interactive():
 
         elif action_name == "check_score":
             return check_score(user_id, user_name)
+        elif action_name == "check_penalty":
+            return penalty_report()
 
 
     elif message_type == "dialog_submission":
@@ -311,8 +320,10 @@ def event():
         db.rmv_db_user(user_id)
     elif (event_type == "member_joined_channel"):
         db.add_db_user(user_id)
-    elif (event_type == "app_mention"):
-        weekly_report()
+    #elif (event_type == "app_mention"):
+    #    text = slack_event["event"]["text"]
+    #    if "Weekly" in text or "weekly" in text:
+    #        penalty_report()
 
     return make_response("", 200)
 
