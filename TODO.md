@@ -6,5 +6,6 @@
 * Name instead of ID
 * Setting next week's wake-up time
 * Reliability
-    * Database copy
+    * Database copy -> done
     * Request handling
+* channel name to env. variable

@@ -160,7 +160,7 @@ def dump_db(db, fname):
 def rmv_db_user(user_id):
     res = rmv_db(DB_SET, fname_set, user_id)
     res = res | rmv_db(DB_REC, fname_rec, user_id)
-    res = res | rmv_db(DB_balance, fname_balance, user_id)
+    res = res | rmv_db(DB_BALANCE, fname_balance, user_id)
     return res
 
 ### ADD USER
@@ -170,9 +170,9 @@ def add_db_user(user_id, user_name=""):
     if (data == "" or data["User Name"] == ""):
         res = res |  add_db(DB_REC, fname_rec, {"User Id": user_id, "User Name": user_name, "Record": 0})
 
-    data = query_db(DB_balance, user_id)
+    data = query_db(DB_BALANCE, user_id)
     if (data == ""):
-        res = res |  add_db(DB_balance, fname_balance, {"User Id": user_id, "Amount": 10000})
+        res = res |  add_db(DB_BALANCE, fname_balance, {"User Id": user_id, "Amount": 10000})
 
 
     return res
@@ -381,7 +381,7 @@ def update_penalty_db():
         amount = amount + data[i]['Penalty']
         new = balance_data
         new['Amount'] = amount
-        mod_db(DB_balance, data[i]['User Id'], fname_balance, new)
+        mod_db(DB_BALANCE, data[i]['User Id'], fname_balance, new)
     print("Update_penalty_db Success")
 
 def flush_weekly():
