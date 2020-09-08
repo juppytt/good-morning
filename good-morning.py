@@ -181,8 +181,6 @@ def penalty_report():
         attachments=[]
     )
 
-    db.erase_record_db()
-
     return make_response("", 200)
 
 

@@ -1,14 +1,17 @@
 import csv
 import os
 from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
 
-
-### CSV file conf
+### CSV file configuration
 DB_SET = "time.csv"
 fname_set = ['User Id', 'Time']
 
 DB_REC = "rec.csv"
 fname_rec = ['User Id', 'User Name', 'Record']
+
+DB_BANK = "bank.csv"
+fname_bank = ['User Id', 'Amount']
 
 
 ### CSV database common functions
@@ -35,7 +38,8 @@ def mod_db(db, user_id, fname, data):
         return -1
 
     if data['User Id'] != user_id:
-        print("Failed: User Id")
+        print("Failed: Trying to change User Id")
+        return -1
 
     db_tmp = db+".tmp"
     with open(db, mode='r') as inp, open(db_tmp, mode='w') as out:
@@ -137,18 +141,26 @@ def dump_db(db, fname):
 def rmv_db_user(user_id):
     res = rmv_db(DB_SET, fname_set, user_id)
     res = res | rmv_db(DB_REC, fname_rec, user_id)
+    res = res | rmv_db(DB_BANK, fname_bank, user_id)
     return res
 
 ### ADD USER
 def add_db_user(user_id, user_name=""):
     data = query_db(DB_REC, user_id)
+    res = 0
     if (data == "" or data["User Name"] == ""):
-        return add_db(DB_REC, fname_rec, {"User Id": user_id, "User Name": user_name, "Record": 0})
-    return 0
+        res = res |  add_db(DB_REC, fname_rec, {"User Id": user_id, "User Name": user_name, "Record": 0})
+
+    data = query_db(DB_BANK, user_id)
+    if (data == ""):
+        res = res |  add_db(DB_BANK, fname_bank, {"User Id": user_id, "Amount": 10000})
+
+
+    return res
 
 def set_user_name_db(user_id, user_name):
-    data = query_db(DB_REC, user_id)
     add_db_user(user_id, user_name)
+    data = query_db(DB_REC, user_id)
     if (data["User Name"] != user_name):
         data["User Name"] = user_name
         mod_db(DB_REC, user_id, fname_rec, data)
@@ -257,8 +269,11 @@ def get_record_db(user_id):
         return "Error: No such user?"
 
 skip_name = "honjacoffee"
-### WEEKLY REPORT
-def get_weekly_db():
+
+
+### Penalty & Weekly Report
+
+def get_penalty():
     ll = dump_db(DB_REC, fname_rec)
     num = len(ll)
     total_penalty = 0
@@ -266,7 +281,6 @@ def get_weekly_db():
     total_score = weekday+1
     if weekday > 4:
         total_score = 5
-
 
     for i in range(len(ll)):
         if ll[i]['User Name'] == skip_name:
@@ -283,8 +297,6 @@ def get_weekly_db():
 
     sort = sorted(ll, key = lambda i : i['Record'], reverse = True)
 
-    print(sort)
-
     top = sort[0]['Record']
     count = 0
     for  i in range(len(ll)):
@@ -295,23 +307,58 @@ def get_weekly_db():
 
     for i in range(count):
         sort[i]['Penalty'] = sort[i]['Penalty'] + (total_penalty/count)
+    return sort
 
+
+def get_weekly_db():
+    data = get_penalty()
     res = "*{:<18}".format("Name") + "Score      " + "Penalty*\n"
     for i in range(len(ll)):
-        name = sort[i]['User Name']
+        name = data[i]['User Name']
         if name == "":
             name = "Unknown"
         res = res + "*{:<18}* ".format(name)
-        res = res + str(sort[i]['Score']) + ("/%d      " % total_score)
-        res = res + "*" + str(sort[i]['Penalty']) + " won*\n"
+        res = res + str(data[i]['Score']) + ("/%d      " % total_score)
+        res = res + "*" + str(data[i]['Penalty']) + " won*\n"
+
 
     return res
 
 
 def erase_record_db():
-    current = datetime.now()
-    if current.weekday() >= 5:
-        set_db(DB_REC, fname_rec, "Record", 0)
+    set_db(DB_REC, fname_rec, "Record", 0)
     return 0
 
+def update_penalty_db():
+    print("update_penalty_db")
+    data = get_penalty()
+    for i in range(len(data)):
+        bank_data = query_db(DB_BANK, data[i]['User Id'])
+        if bank_data == "":
+            print("Error! no user " + data[i]['User Id'])
+            continue
+        amount = int(bank_data['Amount'])
+        amount = amount + data[i]['Penalty']
+        new = bank_data
+        new['Amount'] = amount
+        mod_db(DB_BANK, data[i]['User Id'], fname_bank, new)
+    print("Update_penalty_db Success")
+
+def flush_weekly():
+    update_penalty_db()
+    erase_record_db()
+
+
+### Scheduler
+
+### Scheduler configuration
+scheduler = BackgroundScheduler()
+
+
+# Flush weekly records on every Sunday 11PM
+job = scheduler.add_job(erase_record_db, 'cron',
+                        day_of_week = 'sun',
+                        hour = 23,
+                        id = 'flush_weekly')
+scheduler.start()
 
