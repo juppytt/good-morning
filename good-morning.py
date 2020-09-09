@@ -71,6 +71,7 @@ def gm_main():
 
       }]
     )
+    return make_response("", 200)
 def gm_check():
     gm_message = slack_client.api_call(
       "chat.postMessage",
@@ -108,7 +109,7 @@ def gm_check():
         }]
       }]
     )
-
+    return make_response("", 200)
 
 
 #gm_main()
@@ -206,6 +207,20 @@ def check_balance(user_id, user_name):
 
     return make_response("", 200)
 
+def slack_user_name(user_id):
+    try:
+        # Get user name from slack
+        response = slack_client.api_call(
+            "users.info",
+            user=user_id
+        )
+        #print(response)
+        if response["ok"] == False:
+            return ""
+
+        return response["user"]["real_name"]
+    except:
+        return ""
 
 
 # weekly report (penalty report)
@@ -225,13 +240,23 @@ def penalty_report():
     return make_response("", 200)
 
 
+def set_real_name():
+    res = db.dump_db(db.DB_REC, db.fname_rec)
+    for i in range(len(res)):
+        data = res[i]
+        user_id = data["User Id"]
+        real_name = slack_user_name(user_id)
+        data["User Name"] = real_name
+        db.set_user_name_db(user_id, real_name)
+    res = db.get_weekly_db()
+    print(res)
+
 ## Slack slash commands
 
 # Slack bot help message
 @app.route("/slack/help", methods=["POST"])
 def gm_main_called():
-    gm_main()
-    return make_response("", 200)
+    return gm_main()
 
 @app.route("/slack/check/time", methods=["POST"])
 def slash_check_time():
@@ -241,7 +266,8 @@ def slash_check_time():
 
     user_id = message_action["user_id"]
     user_name = message_action["user_name"]
-    return check_time(user_id, user_name)
+    real_name = slack_user_name(user_id)
+    return check_time(user_id, real_name)
 
 @app.route("/slack/check/score", methods=["POST"])
 def slash_check_score():
@@ -251,7 +277,8 @@ def slash_check_score():
 
     user_id = message_action["user_id"]
     user_name = message_action["user_name"]
-    return check_score(user_id, user_name)
+    real_name = slack_user_name(user_id)
+    return check_score(user_id, real_name)
 
 
 
@@ -265,7 +292,8 @@ def slash_set_time():
     trigger_id = message_action["trigger_id"]
     user_name = message_action["user_name"]
     time = message_action["text"]
-    set_time(user_id, trigger_id, user_name, time)
+    real_name = slack_user_name(user_id)
+    set_time(user_id, trigger_id, real_name, time)
 
     return make_response("", 200)
 
@@ -284,8 +312,8 @@ def slash_record():
 
     user_id = message_action["user_id"]
     user_name = message_action["user_name"]
-
-    return record_time(user_id, user_name)
+    real_name = slack_user_name(user_id)
+    return record_time(user_id, real_name)
 
 
 ## Slack interactive
@@ -294,6 +322,7 @@ def interactive():
     message_action = json.loads(request.form["payload"])
     user_id= message_action["user"]["id"]
     user_name = message_action["user"]["name"]
+    real_name = slack_user_name(user_id)
     print(message_action)
 
     message_type = message_action["type"]
@@ -301,19 +330,19 @@ def interactive():
         trigger_id = message_action["trigger_id"]
         action_name = message_action["actions"][0]["name"]
         if action_name == "set_time":
-            set_time(user_id, trigger_id, user_name)
+            set_time(user_id, trigger_id, real_name)
         elif action_name == "check_time":
-            check_time(user_id, user_name)
+            check_time(user_id, real_name)
         elif action_name == "record_time":
-            return record_time(user_id, user_name)
+            return record_time(user_id, real_name)
         elif action_name == "check_top":
             return gm_check()
         elif action_name == "check_score":
-            return check_score(user_id, user_name)
+            return check_score(user_id, real_name)
         elif action_name == "check_penalty":
             return penalty_report()
         elif action_name == "check_balance":
-            return check_balance(user_id, user_name)
+            return check_balance(user_id, real_name)
 
     elif message_type == "dialog_submission":
         time = message_action["submission"]["time"]
@@ -327,12 +356,12 @@ def interactive():
             )
             return make_response("", 500)
         try:
-            db.set_user_name_db(user_id, user_name)
+            db.set_user_name_db(user_id, real_name)
         except:
             print("set_user_name error")
 
-        text=":white_check_mark: ["+ user_name +"] Wake-up time set!\n"
-        text = text + ":sunny: *" + user_name + "*"
+        text=":white_check_mark: ["+ real_name +"] Wake-up time set!\n"
+        text = text + ":sunny: *" + real_name + "*"
         text = text + "'s wake-up time: *" + time + "*"
 
         # Update the message to show that we're in the process of taking their order
@@ -351,12 +380,17 @@ def interactive():
 @app.route("/slack/event", methods=["POST"])
 def event():
     slack_event = json.loads(request.data)
+
+    print("\n /slack/event")
     print(slack_event)
     if ("challenge" in slack_event):
         return make_response(slack_event["challenge"], 200,
                              {"content-type": "application/json"})
     event_type = slack_event["event"]["type"]
-    user_id = slack_event["authed_users"][0]
+    user_id = slack_event["event"]["user"]
+    user_name = slack_user_name(user_id)
+    print("user_name: ")
+    print(user_name)
     if (event_type == "channel_left"):
         db.rmv_db_user(user_id)
     elif (event_type == "member_joined_channel"):

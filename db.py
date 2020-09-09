@@ -303,8 +303,7 @@ def get_balance_db(user_id):
         return "Error: No such user?"
 
 
-skip_name = "honjacoffee"
-
+skip_name = "Test Honja"
 
 ### Penalty & Weekly Report
 
