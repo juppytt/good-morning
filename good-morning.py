@@ -394,10 +394,14 @@ def event():
         return make_response(slack_event["challenge"], 200,
                              {"content-type": "application/json"})
     event_type = slack_event["event"]["type"]
-    user_id = slack_event["event"]["user"]
-    user_name = slack_user_name(user_id)
-    print("user_name: ")
-    print(user_name)
+    try:
+        user_id = slack_event["event"]["user"]
+        user_name = slack_user_name(user_id)
+        print("user_name: ")
+        print(user_name)
+    except:
+        return make_response("", 200)
+
     if (event_type == "channel_left"):
         db.rmv_db_user(user_id)
     elif (event_type == "member_joined_channel"):
