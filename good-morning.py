@@ -251,6 +251,12 @@ def set_real_name():
     res = db.get_weekly_db()
     print(res)
 
+# process user message for mission
+def process_user_message(slack_event, user_id, user_name):
+    file_type = slack_event["event"]["files"][0]["filetype"]
+    print(file_type)
+    if (file_type == "jpg" or file_type == "jpeg"):
+        record_time(user_id, user_name)
 ## Slack slash commands
 
 # Slack bot help message
@@ -383,6 +389,7 @@ def event():
 
     print("\n /slack/event")
     print(slack_event)
+
     if ("challenge" in slack_event):
         return make_response(slack_event["challenge"], 200,
                              {"content-type": "application/json"})
@@ -395,12 +402,25 @@ def event():
         db.rmv_db_user(user_id)
     elif (event_type == "member_joined_channel"):
         db.add_db_user(user_id)
+    elif (event_type == "message"):
+        if (slack_event["event"]["channel"] == channel_id):
+            if ("files" in slack_event["event"]):
+                process_user_message(slack_event, user_id, user_name)
+
     #elif (event_type == "app_mention"):
     #    text = slack_event["event"]["text"]
     #    if "Weekly" in text or "weekly" in text:
     #        penalty_report()
 
     return make_response("", 200)
+
+### Schduler
+
+job = db.scheduler.add_job(gm_main, 'cron',
+                           day_of_week = "mon,tue,wed,thu,fri",
+                           hour = 8,
+                           id = 'help')
+db.scheduler.start()
 
 if __name__ == "__main__":
     app.run()

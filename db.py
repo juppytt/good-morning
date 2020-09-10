@@ -399,5 +399,5 @@ job = scheduler.add_job(erase_record_db, 'cron',
                         day_of_week = 'sun',
                         hour = 23,
                         id = 'flush_weekly')
-scheduler.start()
+#scheduler.start()
 
