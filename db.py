@@ -14,6 +14,10 @@ fname_rec = ['User Id', 'User Name', 'Record']
 DB_BALANCE = "balance.csv"
 fname_balance = ['User Id', 'Amount']
 
+## ERROR CODE
+ERROR_SKIPPED_BEFORE = -1
+ERROR_SKIP_LATE = -2
+
 
 ### CSV database common functions
 def init_db(db, fname):
@@ -164,6 +168,7 @@ def rmv_db_user(user_id):
     return res
 
 ### ADD USER
+# update or create user info
 def add_db_user(user_id, user_name=""):
     data = query_db(DB_REC, user_id)
     res = 0
@@ -222,20 +227,24 @@ def get_time_db(user_id):
     return data
 
 ### CHECK USER SUCCESS
+# return 0 if time1 <= time2, else -1
+def compare_time(time1, time2):
+    (h1, m1) = time1.split(':')
+    (h2, m2) = time2.split(':')
+    if h1 < h2:
+        return 0
+    if h1 > h2:
+        return -1
+    if m1 <= m2:
+        return 0
+    return -1
+
 def is_success(user_id, time):
     time_db = get_time_db(user_id)
     if (time_db) == "":
         print("Failed! Wake-up time not set")
         return -1
-    (h, m) = time.split(':')
-    (h_db, m_db) = time_db.split(':')
-    if h < h_db:
-        return 0
-    if h > h_db:
-        return -1
-    if m <= m_db:
-        return 0
-    return -1
+    return compare_time(time, time_db)
 
 ### RECORD WAKEUP TIME
 def record_time_db(user_id, user_name):
@@ -257,30 +266,71 @@ def record_time_db(user_id, user_name):
 
     return res, time
 
+def record_skip_db(user_id, user_name):
+    print("record_skip_db")
+    current = datetime.now()
+    time = current.strftime("%H:%M")
+    if compare_time(time, "22:00") == 0:
+        add_db_user(user_id, user_name)
+        data = query_db(DB_REC, user_id)
+        record = data["Record"]
+        record = int(record)
+
+        weekday = current.weekday()
+
+        if weekday == 6:
+            weekday = -1
+        check_skip = record >> 5
+        if check_skip > 0:
+            return ERROR_SKIPPED_BEFORE
+        else:
+            record = record | (1<<(weekday+5+1))
+            mod_db(DB_REC, user_id, fname_rec,
+                   {'User Id': user_id, 'User Name': user_name, 'Record': record})
+            return 0
+    else:
+        return ERROR_SKIP_LATE
+
 def dump_record(data):
     text = "* Mon   Tue   Wed   Thr    Fri    Total*\n"
     count = 0
     score = int(data)
+    weekday = datetime.now().weekday()
+
+    skip = False
     for i in range(5):
-        if (score & (1<<i)):
+        if (score & (1<<(i+5))):
+            text = text + "  :last_quarter_moon_with_face:  "
+            skip = True
+        elif  i > weekday:
+             text = text + "  :white_medium_square:  "
+        elif (score & (1<<i)):
             text = text + "  :sunny:  "
             count = count + 1
         else:
             text = text + "  :cloud:  "
 
-    text = text + ("  *%d/5*" % count)
+    total_score = weekday+1
+    if skip:
+        total_score = total_score - 1
+    text = text + ("  *%d/%d*" % (count, total_score))
     return text
 
 def dump_balance(data):
     text = "*%s won*" % data
     return text
 
-def extract_score(data):
+def extract_score(data, weekday):
     count = 0
+    skip = False
     for i in range(5):
         if (data & (1<<i)):
             count = count + 1
-    return count
+    for i in range(5, 5+weekday+1):
+        if (data & (1<<i)):
+            skip = True
+            break
+    return count, skip
 
 def get_record_db(user_id):
     print("get_record_db: " + user_id)
@@ -323,16 +373,20 @@ def get_penalty():
 
     for i in range(len(ll)):
         rec = int(ll[i]['Record'])
-        score = extract_score(rec)
+        score, skip = extract_score(rec, weekday)
         ll[i]['Score'] = score
-        penalty = (score - total_score)*1000
+        total_score_user = total_score
+        if skip:
+            total_score_user = total_score_user - 1
+        penalty = (score - total_score_user)*1000
         ll[i]['Penalty'] = penalty
         total_penalty = total_penalty - penalty
 
+        # set user total score
+        ll[i]['Total'] = total_score_user
+
     sort = sorted(ll, key = lambda i : i['Score'], reverse = True)
     top = sort[0]['Score']
-    print("sort:")
-    print(sort)
     count = 0
     for  i in range(len(ll)):
         if sort[i]['Score'] == top:
@@ -340,7 +394,6 @@ def get_penalty():
         else:
             break
 
-    print("total penalty: %d, incentive: %d" % (total_penalty, total_penalty/count))
     for i in range(count):
         sort[i]['Penalty'] = sort[i]['Penalty'] + (total_penalty/count)
     return sort
@@ -359,7 +412,7 @@ def get_weekly_db():
         if name == "":
             name = "Unknown"
         res = res + "*{:<18}* ".format(name)
-        res = res + str(data[i]['Score']) + ("/%d      " % total_score)
+        res = res + str(data[i]['Score']) + ("/%d      " % data[i]['Total'])
         res = res + "*" + str(data[i]['Penalty']) + " won*\n"
 
 
@@ -396,10 +449,10 @@ def flush_weekly():
 scheduler = BackgroundScheduler()
 
 
-# Flush weekly records on every Sunday 11PM
+# Flush weekly records on every Saturday 11PM
 job = scheduler.add_job(erase_record_db, 'cron',
-                        day_of_week = 'sun',
-                        hour = 23,
+                        day_of_week = 'sat',
+                        hour = 22,
                         id = 'flush_weekly')
 #scheduler.start()
 
