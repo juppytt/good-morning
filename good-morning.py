@@ -225,10 +225,9 @@ def slack_user_name(user_id):
 
 # weekly report (penalty report)
 def penalty_report():
-    message_action = request.form
-    print(message_action)
 
-    res = db.get_weekly_db()
+    res = "*Weekly Report!*\n"
+    res = res + db.get_weekly_db()
 
     slack_client.api_call(
         "chat.postMessage",
@@ -424,6 +423,10 @@ job = db.scheduler.add_job(gm_main, 'cron',
                            day_of_week = "mon,tue,wed,thu,fri",
                            hour = 8,
                            id = 'help')
+job = db.scheduler.add_job(penalty_report, 'cron',
+                           day_of_week = "fri",
+                           hour = 12,
+                           id = 'weekly')
 db.scheduler.start()
 
 if __name__ == "__main__":

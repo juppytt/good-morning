@@ -329,16 +329,18 @@ def get_penalty():
         ll[i]['Penalty'] = penalty
         total_penalty = total_penalty - penalty
 
-    sort = sorted(ll, key = lambda i : i['Record'], reverse = True)
-
-    top = sort[0]['Record']
+    sort = sorted(ll, key = lambda i : i['Score'], reverse = True)
+    top = sort[0]['Score']
+    print("sort:")
+    print(sort)
     count = 0
     for  i in range(len(ll)):
-        if sort[i]['Record'] == top:
+        if sort[i]['Score'] == top:
             count = count+1
         else:
             break
 
+    print("total penalty: %d, incentive: %d" % (total_penalty, total_penalty/count))
     for i in range(count):
         sort[i]['Penalty'] = sort[i]['Penalty'] + (total_penalty/count)
     return sort
