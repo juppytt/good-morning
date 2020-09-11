@@ -258,17 +258,17 @@ def record_time_db(user_id, user_name):
     return res, time
 
 def dump_record(data):
-    text = "*Mon  Tue  Wed   Thr   Fri   Total*\n"
+    text = "* Mon   Tue   Wed   Thr    Fri    Total*\n"
     count = 0
     score = int(data)
     for i in range(5):
         if (score & (1<<i)):
-            text = text + "    1   "
+            text = text + "  :sunny:  "
             count = count + 1
         else:
-            text = text + "    0   "
+            text = text + "  :cloud:  "
 
-    text = text + (" *%d/5*" % count)
+    text = text + ("  *%d/5*" % count)
     return text
 
 def dump_balance(data):

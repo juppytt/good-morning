@@ -183,7 +183,7 @@ def check_score(user_id, user_name):
 
     res = db.get_record_db(user_id)
 
-    text = ":sunny: *" + user_name + "*'s wake-up score: \n"
+    text = ":blossom: *" + user_name + "*'s wake-up score: \n"
     text = text + res
     slack_client.api_call(
         "chat.postMessage",
