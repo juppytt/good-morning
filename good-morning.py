@@ -155,6 +155,14 @@ def set_time(user_id, trigger_id, user_name, time=""):
 def set_skip(user_id, user_name):
     print("set skip: " + user_name)
     res = db.record_skip_db(user_id, user_name)
+    text = ":last_quarter_moon_with_face: *" + user_name + "* requested skip for tomorrow."
+    slack_client.api_call(
+        "chat.postMessage",
+        channel=WAKEUP_TIME["channel"],
+        text = text,
+        attachments=[]
+    )
+
     if res == db.ERROR_SKIPPED_BEFORE:
         text = ":no_entry: Sorry! You already skipped once this week."
     elif res == db.ERROR_SKIP_LATE:
