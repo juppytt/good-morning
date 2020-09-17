@@ -2,7 +2,6 @@ import csv
 import os
 import shutil
 from datetime import datetime
-from apscheduler.schedulers.background import BackgroundScheduler
 
 ### CSV file configuration
 DB_SET = "time.csv"
@@ -425,6 +424,7 @@ def erase_record_db():
 
 def update_penalty_db():
     print("update_penalty_db")
+    res = ""
     data = get_penalty()
     for i in range(len(data)):
         balance_data = query_db(DB_BALANCE, data[i]['User Id'])
@@ -436,23 +436,16 @@ def update_penalty_db():
         new = balance_data
         new['Amount'] = amount
         mod_db(DB_BALANCE, data[i]['User Id'], fname_balance, new)
+
+        if amount <= 0:
+            if res == "":
+                res = res + ":bank: *Alert from GoodMorning Bank*\n"
+
+            text =  "*" + data[i]['User Name'] + "*, you've run out of balance: "
+            text = text + "*" + str(amount) + "* won\n"
+            res = res + text
+
     print("Update_penalty_db Success")
+    return res
 
-def flush_weekly():
-    update_penalty_db()
-    erase_record_db()
-
-
-### Scheduler
-
-### Scheduler configuration
-scheduler = BackgroundScheduler()
-
-
-# Flush weekly records on every Saturday 11PM
-job = scheduler.add_job(erase_record_db, 'cron',
-                        day_of_week = 'sat',
-                        hour = 22,
-                        id = 'flush_weekly')
-#scheduler.start()
 

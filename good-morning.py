@@ -2,7 +2,7 @@ from flask import Flask, request, make_response, Response
 import os
 import json
 import db
-
+from apscheduler.schedulers.background import BackgroundScheduler
 from slackclient import SlackClient
 
 # Your app's Slack bot user token
@@ -43,7 +43,7 @@ def gm_main():
       "chat.postMessage",
       as_user=True,
       channel=channel_id,
-        text="I am GoodMorning Bot :bee:, and I\'m here to help you wake up early :sunny:",
+        text="I am GoodMorning Bot :sunrise:, and I\'m here to help you wake up early :simple_smile:",
       attachments=[{
         "text": "",
         "callback_id": user_id + "set_time_form",
@@ -60,6 +60,12 @@ def gm_main():
             "text": ":memo: Set wake-up time",
             "type": "button",
             "value": "set_time"
+        },
+        {
+            "name": "set_skip",
+            "text": ":last_quarter_moon_with_face: Skip tomorrow",
+            "type": "button",
+            "value": "set_skip"
         },
         {
             "name": "check_top",
@@ -146,13 +152,30 @@ def set_time(user_id, trigger_id, user_name, time=""):
         attachments=[]
     )
 
+def set_skip(user_id, user_name):
+    print("set skip: " + user_name)
+    res = db.record_skip_db(user_id, user_name)
+    if res == db.ERROR_SKIPPED_BEFORE:
+        text = ":no_entry: Sorry! You already skipped once this week."
+    elif res == db.ERROR_SKIP_LATE:
+        text = ":no_entry: Sorry! It's too late to skip."
+    else:
+        text = ":heavy_check_mark: Okay! You can take a break tomorrow."
+    slack_client.api_call(
+        "chat.postMessage",
+        channel=WAKEUP_TIME["channel"],
+        text = text,
+        attachments=[]
+    )
+
+    return make_repsonse("", 200)
 def check_time(user_id, user_name):
 
     res = db.get_time_db(user_id)
     if (res == ""):
         return make_response("", 500)
 
-    text = ":sunny: *" + user_name + "*'s wake-up time: *" + res + "*"
+    text = ":sunrise: *" + user_name + "*'s wake-up time: *" + res + "*"
     slack_client.api_call(
         "chat.postMessage",
         channel=WAKEUP_TIME["channel"],
@@ -237,6 +260,18 @@ def penalty_report():
     )
 
     return make_response("", 200)
+
+
+def flush_weekly():
+    res = db.update_penalty_db()
+    db.erase_record_db()
+    if res is not "":
+        slack_client.api_call(
+            "chat.postMessage",
+            channel=WAKEUP_TIME["channel"],
+            text = res,
+            attachments=[]
+        )
 
 
 def set_real_name():
@@ -348,6 +383,8 @@ def interactive():
             return penalty_report()
         elif action_name == "check_balance":
             return check_balance(user_id, real_name)
+        elif action_name == "set_skip":
+            return set_skip(user_id, real_name)
 
     elif message_type == "dialog_submission":
         time = message_action["submission"]["time"]
@@ -418,16 +455,25 @@ def event():
     return make_response("", 200)
 
 ### Schduler
+scheduler = BackgroundScheduler()
 
-job = db.scheduler.add_job(gm_main, 'cron',
+job = scheduler.add_job(gm_main, 'cron',
                            day_of_week = "mon,tue,wed,thu,fri",
                            hour = 8,
                            id = 'help')
-job = db.scheduler.add_job(penalty_report, 'cron',
+job = scheduler.add_job(penalty_report, 'cron',
                            day_of_week = "fri",
                            hour = 12,
                            id = 'weekly')
-db.scheduler.start()
+
+# Flush weekly records on every Saturday 10PM
+job = scheduler.add_job(flush_weekly, 'cron',
+                        day_of_week = 'sat',
+                        hour = 22,
+                        id = 'flush_weekly')
+
+scheduler.start()
+
 
 if __name__ == "__main__":
     app.run()
