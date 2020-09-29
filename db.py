@@ -163,14 +163,14 @@ def dump_db(db, fname):
     return res
 
 ### CONFIGURATION
-def get_db_conf(name):
-    print("get_db_conf")
+def get_conf_db(name):
+    print("get_conf_db")
     data = query_db(DB_CONF, name)
     if data is not "":
         data = data["Value"]
     return data
 
-def set_db_conf(name, value):
+def set_conf_db(name, value):
     set_db(DB_CONF, fname_conf, name, value)
     return 0
 
@@ -309,7 +309,7 @@ def process_rec(score):
     text = ""
     weekday = datetime.now().weekday()
     holiday = 0
-    holiday_conf = get_db_conf("holiday")
+    holiday_conf = get_conf_db("holiday")
     if holiday_conf != "":
         holiday = int(holiday_conf)
 
@@ -362,7 +362,7 @@ def extract_score(data, weekday):
     skip = 0
 
     holiday = 0
-    holiday_conf = get_db_conf("holiday")
+    holiday_conf = get_conf_db("holiday")
     if holiday_conf != "":
         holiday = int(holiday_conf)
 
@@ -464,6 +464,9 @@ def get_weekly_db():
 
     return res
 
+def erase_holiday_db():
+    mod_db(DB_CONF, "holiday", fname_conf, 0)
+    return 0
 
 def erase_record_db():
     set_db(DB_REC, fname_rec, "Record", 0)

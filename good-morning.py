@@ -273,6 +273,7 @@ def penalty_report():
 def flush_weekly():
     res = db.update_penalty_db()
     db.erase_record_db()
+    db.erase_holiday_db()
     if res is not "":
         slack_client.api_call(
             "chat.postMessage",
