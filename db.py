@@ -311,9 +311,6 @@ def dump_record(data):
     score = int(data)
     weekday = datetime.now().weekday()
 
-    #for test
-    weekday = 4
-
     holiday = 0
     holiday_conf = get_db_conf("holiday")
     if holiday_conf != "":
