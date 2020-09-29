@@ -305,35 +305,48 @@ def record_skip_db(user_id, user_name):
     else:
         return ERROR_SKIP_LATE
 
-def dump_record(data):
-    text = "* Mon   Tue   Wed   Thr    Fri    Total*\n"
-    count = 0
-    score = int(data)
+def process_rec(score):
+    text = ""
     weekday = datetime.now().weekday()
-
     holiday = 0
     holiday_conf = get_db_conf("holiday")
     if holiday_conf != "":
         holiday = int(holiday_conf)
 
+    count = 0
     skip = 0
     for i in range(5):
         if  i > weekday:
-            if (holiday & (1<<i)) | (score & (1<<(i+5))):
+            if (holiday & (1<<i)):
+                text = text + "  :beach_with_umbrella:  "
+            elif (score & (1<<(i+5))):
                 text = text + "  :last_quarter_moon_with_face:  "
             else:
-             text = text + "  :white_medium_square:  "
+                text = text + "  :white_medium_square:  "
         else:
             if (score & (1<<i)):
                 text = text + "  :sunny:  "
                 count = count + 1
                 if (holiday & (1<<i)):
                     skip = skip + 1
-            elif (holiday & (1<<i)) | (score & (1<<(i+5))):
+            elif (holiday & (1<<i)):
+                text = text + "  :beach_with_umbrella:  "
+                skip = skip + 1
+            elif (score & (1<<(i+5))):
                 text = text + "  :last_quarter_moon_with_face:  "
                 skip = skip + 1
             else:
                 text = text + "  :cloud:  "
+    return text, weekday, skip, count
+
+
+def dump_record(data):
+    text = "* Mon   Tue   Wed   Thr    Fri    Total*\n"
+    score = int(data)
+
+    visual, weekday, skip, count = process_rec(score)
+
+    text = text + visual
 
     total_score = weekday+1
     total_score = total_score - skip
@@ -436,14 +449,17 @@ def get_weekly_db():
     if weekday > 4:
         total_score = 5
     data = get_penalty()
-    res = "*{:<18}".format("Name") + "Score      " + "Penalty*\n"
+    res = "*Mon   Tue   Wed   Thr   Fri         Score      Penalty        Name*\n"
     for i in range(len(data)):
         name = data[i]['User Name']
         if name == "":
             name = "Unknown"
-        res = res + "*{:<18}* ".format(name)
-        res = res + str(data[i]['Score']) + ("/%d      " % data[i]['Total'])
-        res = res + "*" + str(data[i]['Penalty']) + " won*\n"
+
+        process_res = process_rec(int(data[i]['Record']))
+        res = res + process_res[0] + "      "
+        res = res + str(data[i]['Score']) + ("/%d       " % data[i]['Total'])
+        res = res + "*{:04d} won*     ".format(data[i]['Penalty'])
+        res = res + "*" + name + "*\n"
 
 
     return res
