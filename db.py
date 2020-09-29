@@ -296,22 +296,25 @@ def dump_record(data):
     score = int(data)
     weekday = datetime.now().weekday()
 
-    skip = False
+    skip = 0
     for i in range(5):
-        if (score & (1<<(i+5))):
-            text = text + "  :last_quarter_moon_with_face:  "
-            skip = True
-        elif  i > weekday:
+        if  i > weekday:
+            if (score & (1<<(i+5))):
+                text = text + "  :last_quarter_moon_with_face:  "
+            else:
              text = text + "  :white_medium_square:  "
-        elif (score & (1<<i)):
-            text = text + "  :sunny:  "
-            count = count + 1
         else:
-            text = text + "  :cloud:  "
+            if (score & (1<<i)):
+                text = text + "  :sunny:  "
+                count = count + 1
+            elif (score & (1<<(i+5))):
+                text = text + "  :last_quarter_moon_with_face:  "
+                skip += 1
+            else:
+                text = text + "  :cloud:  "
 
     total_score = weekday+1
-    if skip:
-        total_score = total_score - 1
+    total_score = total_score - skip
     text = text + ("  *%d/%d*" % (count, total_score))
     return text
 
