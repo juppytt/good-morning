@@ -13,6 +13,9 @@ fname_rec = ['User Id', 'User Name', 'Record']
 DB_BALANCE = "balance.csv"
 fname_balance = ['User Id', 'Amount']
 
+DB_CONF = "conf.csv"
+fname_conf = ['User Id','Value']
+
 ## ERROR CODE
 ERROR_SKIPPED_BEFORE = -1
 ERROR_SKIP_LATE = -2
@@ -159,6 +162,18 @@ def dump_db(db, fname):
             res.append(row)
     return res
 
+### CONFIGURATION
+def get_db_conf(name):
+    print("get_db_conf")
+    data = query_db(DB_CONF, name)
+    if data is not "":
+        data = data["Value"]
+    return data
+
+def set_db_conf(name, value):
+    set_db(DB_CONF, fname_conf, name, value)
+    return 0
+
 ### REMOVE USER
 def rmv_db_user(user_id):
     res = rmv_db(DB_SET, fname_set, user_id)
@@ -296,10 +311,18 @@ def dump_record(data):
     score = int(data)
     weekday = datetime.now().weekday()
 
+    #for test
+    weekday = 4
+
+    holiday = 0
+    holiday_conf = get_db_conf("holiday")
+    if holiday_conf != "":
+        holiday = int(holiday_conf)
+
     skip = 0
     for i in range(5):
         if  i > weekday:
-            if (score & (1<<(i+5))):
+            if (holiday & (1<<i)) | (score & (1<<(i+5))):
                 text = text + "  :last_quarter_moon_with_face:  "
             else:
              text = text + "  :white_medium_square:  "
@@ -307,9 +330,11 @@ def dump_record(data):
             if (score & (1<<i)):
                 text = text + "  :sunny:  "
                 count = count + 1
-            elif (score & (1<<(i+5))):
+                if (holiday & (1<<i)):
+                    skip = skip + 1
+            elif (holiday & (1<<i)) | (score & (1<<(i+5))):
                 text = text + "  :last_quarter_moon_with_face:  "
-                skip += 1
+                skip = skip + 1
             else:
                 text = text + "  :cloud:  "
 
@@ -324,14 +349,19 @@ def dump_balance(data):
 
 def extract_score(data, weekday):
     count = 0
-    skip = False
-    for i in range(5):
+    skip = 0
+
+    holiday = 0
+    holiday_conf = get_db_conf("holiday")
+    if holiday_conf != "":
+        holiday = int(holiday_conf)
+
+
+    for i in range(weekday+1):
         if (data & (1<<i)):
             count = count + 1
-    for i in range(5, 5+weekday+1):
-        if (data & (1<<i)):
-            skip = True
-            break
+        if (holiday & (1<<i)) | (data & (1<<(i+5))):
+            skip = skip + 1
     return count, skip
 
 def get_record_db(user_id):
@@ -364,6 +394,7 @@ def get_penalty():
     num = len(ll)
     total_penalty = 0
     weekday = datetime.now().weekday()
+
     total_score = weekday+1
     if weekday > 4:
         total_score = 5
@@ -378,20 +409,20 @@ def get_penalty():
         score, skip = extract_score(rec, weekday)
         ll[i]['Score'] = score
         total_score_user = total_score
-        if skip:
-            total_score_user = total_score_user - 1
-        penalty = (score - total_score_user)*1000
+        total_score_user = total_score_user - skip
+        penalty = min(0,score - total_score_user)*1000
         ll[i]['Penalty'] = penalty
         total_penalty = total_penalty - penalty
 
         # set user total score
         ll[i]['Total'] = total_score_user
 
+    # sort by score (do not count holiday)
     sort = sorted(ll, key = lambda i : i['Score'], reverse = True)
-    top = sort[0]['Score']
+    top = min(sort[0]['Score'], sort[0]['Total'])
     count = 0
     for  i in range(len(ll)):
-        if sort[i]['Score'] == top:
+        if sort[i]['Score'] >= top:
             count = count+1
         else:
             break
