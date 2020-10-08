@@ -370,7 +370,7 @@ def extract_score(data, weekday):
     for i in range(weekday+1):
         if (data & (1<<i)):
             count = count + 1
-        if (holiday & (1<<i)) | (data & (1<<(i+5))):
+        elif (holiday & (1<<i)) | (data & (1<<(i+5))):
             skip = skip + 1
     return count, skip
 
@@ -465,7 +465,7 @@ def get_weekly_db():
     return res
 
 def erase_holiday_db():
-    mod_db(DB_CONF, "holiday", fname_conf, 0)
+    set_db(DB_CONF, fname_conf, "Value", 0)
     return 0
 
 def erase_record_db():
