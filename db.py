@@ -186,7 +186,7 @@ def rmv_db_user(user_id):
 def add_db_user(user_id, user_name=""):
     data = query_db(DB_REC, user_id)
     res = 0
-    if (data == "" or data["User Name"] == ""):
+    if (data == "" or (data["User Name"] == "" and user_name is not "") ):
         res = res |  add_db(DB_REC, fname_rec, {"User Id": user_id, "User Name": user_name, "Record": 0})
 
     data = query_db(DB_BALANCE, user_id)
