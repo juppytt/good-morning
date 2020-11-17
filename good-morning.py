@@ -176,7 +176,7 @@ def set_skip(user_id, user_name):
         attachments=[]
     )
 
-    return make_repsonse("", 200)
+    return make_response("", 200)
 def check_time(user_id, user_name):
 
     res = db.get_time_db(user_id)
