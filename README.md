@@ -25,18 +25,18 @@ A Slack Bot for wake up mission
 ## Screenshots
 ### Main
 ![Main](https://github.com/juppytt/good-morning/blob/master/image/main.png) 
-Default set to post main menu message on **every weekday 8 AM**.
+Default set to post main menu message on __every weekday 8 AM__.
 
 ### Set Time
 <img src="https://github.com/juppytt/good-morning/blob/master/image/set-time.png" width="500"> 
-You can set your wake up time **once in a week**.
+You can set your wake up time __once in a week__.
 
 ### Wake up Mission
 <p float="center">
     <img src="https://github.com/juppytt/good-morning/blob/master/image/record-success.png" width="330">
     <img src="https://github.com/juppytt/good-morning/blob/master/image/record-fail.jpeg" width="380">  
 </p>
-To success at the wake up mission, just send a photo on the slack channel before your wake up time. It's Super EASY!:simple_smile:  
+To success at the wake up mission, just send a photo on the slack channel before your wake up time. It's Super EASY! :simple_smile:  
 
 ### Check
 
@@ -46,14 +46,14 @@ To success at the wake up mission, just send a photo on the slack channel before
 ### Weekly Report
 <img src="https://github.com/juppytt/good-morning/blob/master/image/weekly-report.png" width="500">  
 Weekly report shows the weekly score of the participants and their penalty/reward.  
-Default set to post weekly report on **every Friday 12 PM**. 
+Default set to post weekly report on __every Friday 12 PM__. 
 
 ### Skip Request
 <img src="https://github.com/juppytt/good-morning/blob/master/image/request-skip.jpeg" width="450">
 Users can request to skip the mission on the following day.  
-By default, skip is accpeted only **before 10PM** and **once in a week**.  
+By default, skip is accpeted only __before 10PM__ and __once in a week__.  
 
 ### Bank Alert
-![Bank Alert](https://github.com/juppytt/good-morning/blob/master/image/bank-alert.jpeg )
-By default, good-morning calculates the fee and rewards and penalties on **Friday 12:05PM**.  
+![Bank Alert](https://github.com/juppytt/good-morning/blob/master/image/bank-alert.jpeg )  
+By default, good-morning calculates the fee and rewards and penalties on __Friday 12:05PM__.  
 For those with negative deposits, the bank posts an alert message. 
