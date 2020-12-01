@@ -25,14 +25,14 @@ A Slack Bot for wake up mission
 ## EXAMPLE
 ### Main
 ![Main](https://github.com/juppytt/good-morning/blob/master/image/main.png)
-Default set to post main message on *every weekday 8 AM*.
+Default set to post main message on **every weekday 8 AM**.
 
 ### Set Time
-![Set Time](https://github.com/juppytt/good-morning/blob/master/image/set-time.jpeg)
-Users can set their wake up time *once in a week*.
+![Set Time](https://github.com/juppytt/good-morning/blob/master/image/set-time.png)
+Users can set their wake up time **once in a week**.
 
 ### Record Wake up Time
-![Record Success](https://github.com/juppytt/good-morning/blob/master/image/record-success.jpeg)
+![Record Success](https://github.com/juppytt/good-morning/blob/master/image/record-success.png)
 ![Record Fail](https://github.com/juppytt/good-morning/blob/master/image/record-fail.jpeg)
 
 ### Check
@@ -41,15 +41,15 @@ Users can set their wake up time *once in a week*.
 
 
 ### Weekly Report
-![Weekly Report](https://github.com/juppytt/good-morning/blob/master/image/weekly-report.jpeg)
-Default set to post weekly report on *every Friday 12 PM*.
+![Weekly Report](https://github.com/juppytt/good-morning/blob/master/image/weekly-report.png)
+Default set to post weekly report on **every Friday 12 PM**.
 
 ### Skip Request
 ![Request Skip](https://github.com/juppytt/good-morning/blob/master/image/request-skip.jpeg)
 Users can request to skip the mission on the following day. 
-By default, skip is accpeted only *before 10PM* and *once in a week*. 
+By default, skip is accpeted only **before 10PM** and **once in a week**. 
 
 ### Bank Alert
 ![Bank Alert](https://github.com/juppytt/good-morning/blob/master/image/bank-alert.jpeg)
-By default, good-morning calculates the fee and rewards and penalties on /*Friday 12:05PM*/. 
+By default, good-morning calculates the fee and rewards and penalties on **Friday 12:05PM**. 
 For those with negative deposits, the bank posts an alert message. 
