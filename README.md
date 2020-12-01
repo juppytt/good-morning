@@ -28,28 +28,28 @@ A Slack Bot for wake up mission
 Default set to post main menu message on **every weekday 8 AM**.
 
 ### Set Time
-<img src="https://github.com/juppytt/good-morning/blob/master/image/set-time.png" width="400") 
+<img src="https://github.com/juppytt/good-morning/blob/master/image/set-time.png" width="500") 
 You can set your wake up time **once in a week**.
 
 ### Wake up Mission
 <p float="center">
-    <img src="https://github.com/juppytt/good-morning/blob/master/image/record-success.png" width="250">
-    <img src="https://github.com/juppytt/good-morning/blob/master/image/record-fail.jpeg" width="250">  
+    <img src="https://github.com/juppytt/good-morning/blob/master/image/record-success.png" width="350">
+    <img src="https://github.com/juppytt/good-morning/blob/master/image/record-fail.jpeg" width="400">  
 </p>
 To success at the wake up mission, just send a photo on the slack channel before your wake up time. It's Super EASY!:simple_smile:  
 
 ### Check
 
-![Check All](https://github.com/juppytt/good-morning/blob/master/image/check-all.jpeg) 
+<img src="https://github.com/juppytt/good-morning/blob/master/image/check-all.jpeg" width="600"> 
 
 
 ### Weekly Report
-<img src="https://github.com/juppytt/good-morning/blob/master/image/weekly-report.png" width="450">  
+<img src="https://github.com/juppytt/good-morning/blob/master/image/weekly-report.png" width="500">  
 Weekly report shows the weekly score of the participants and their penalty/reward.  
 Default set to post weekly report on **every Friday 12 PM**. 
 
 ### Skip Request
-<img src="https://github.com/juppytt/good-morning/blob/master/image/request-skip.jpeg" width="400">
+<img src="https://github.com/juppytt/good-morning/blob/master/image/request-skip.jpeg" width="450">
 Users can request to skip the mission on the following day.  
 By default, skip is accpeted only **before 10PM** and **once in a week**.  
 
