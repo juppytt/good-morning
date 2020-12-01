@@ -463,6 +463,13 @@ def event():
 
     return make_response("", 200)
 
+
+
+### Backup
+def backup():
+    os.system(./backup.sh)
+
+
 ### Schduler
 scheduler = BackgroundScheduler()
 
@@ -480,8 +487,11 @@ job = scheduler.add_job(flush_weekly, 'cron',
                         day_of_week = 'sat',
                         hour = 22,
                         id = 'flush_weekly')
+job = scheduler.add_job(backup, 'cron',
+                        day_of_week = 'mon,tue,wed,thu,fri,sat,sun',
+                        hour = 23,
+                        id = 'backup')
 
 scheduler.start()
-
 if __name__ == "__main__":
     app.run()

@@ -1,2 +1,5 @@
 venv
 run.sh
+*.csv
+*.copy
+server_log
