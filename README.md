@@ -28,13 +28,13 @@ A Slack Bot for wake up mission
 Default set to post main menu message on **every weekday 8 AM**.
 
 ### Set Time
-<img src="https://github.com/juppytt/good-morning/blob/master/image/set-time.png" width="500") 
+<img src="https://github.com/juppytt/good-morning/blob/master/image/set-time.png" width="500"> 
 You can set your wake up time **once in a week**.
 
 ### Wake up Mission
 <p float="center">
-    <img src="https://github.com/juppytt/good-morning/blob/master/image/record-success.png" width="350">
-    <img src="https://github.com/juppytt/good-morning/blob/master/image/record-fail.jpeg" width="400">  
+    <img src="https://github.com/juppytt/good-morning/blob/master/image/record-success.png" width="330">
+    <img src="https://github.com/juppytt/good-morning/blob/master/image/record-fail.jpeg" width="380">  
 </p>
 To success at the wake up mission, just send a photo on the slack channel before your wake up time. It's Super EASY!:simple_smile:  
 
