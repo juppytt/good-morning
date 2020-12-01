@@ -28,7 +28,7 @@ A Slack Bot for wake up mission
 Default set to post main menu message on **every weekday 8 AM**.
 
 ### Set Time
-![Set Time](https://github.com/juppytt/good-morning/blob/master/image/set-time.png | width=100) 
+<img src="https://github.com/juppytt/good-morning/blob/master/image/set-time.png" width="400") 
 You can set your wake up time **once in a week**.
 
 ### Wake up Mission
