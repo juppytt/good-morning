@@ -44,7 +44,7 @@ To success at the wake up mission, just send a photo on the slack channel before
 
 
 ### Weekly Report
-<img src="https://github.com/juppytt/good-morning/blob/master/image/weekly-report.png" width="500">  
+<img src="https://github.com/juppytt/good-morning/blob/master/image/weekly-report.jpeg" width="500">  
 Weekly report shows the weekly score of the participants and their penalty/reward.  
 Default set to post weekly report on **every Friday 12 PM**. 
 
