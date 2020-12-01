@@ -1,6 +1,6 @@
-![HEADER](juppytt.github.com/good-morning/image/main.png)
+![HEADER](juppytt.github.com/good-morning/blob/master/image/main.png)
 
-# good-morning 
+# good-morning :sunrise: 
 A Slack Bot for wake up mission
 
 
@@ -23,20 +23,20 @@ A Slack Bot for wake up mission
 
 
 ## EXAMPLE
-[Main](juppytt.github.com/good-morning/image/main.png)
+[Main](juppytt.github.com/good-morning/blob/master/image/main.png)
 
-[Set Time](juppytt.github.com/good-morning/image/set-time.jpeg)
+[Set Time](juppytt.github.com/good-morning/blob/master/image/set-time.jpeg)
 
 
-[Record Success](juppytt.github.com/good-morning/image/record-success.jpeg)
-[Record Fail](juppytt.github.com/good-morning/image/record-fail.jpeg)
+[Record Success](juppytt.github.com/good-morning/blob/master/image/record-success.jpeg)
+[Record Fail](juppytt.github.com/good-morning/blob/master/image/record-fail.jpeg)
 
-[Check All](juppytt.github.com/good-morning/image/check-all.jpeg)
+[Check All](juppytt.github.com/good-morning/blob/master/image/check-all.jpeg)
 
-[Weekly Report](juppytt.github.com/good-morning/image/weekly-report.jpeg)
+[Weekly Report](juppytt.github.com/good-morning/blob/master/image/weekly-report.jpeg)
 
-[Request Skip](juppytt.github.com/good-morning/image/request-skip.jpeg)
-[Bank Alert](juppytt.github.com/good-morning/image/bank-alert.jpeg)
+[Request Skip](juppytt.github.com/good-morning/blob/master/image/request-skip.jpeg)
+[Bank Alert](juppytt.github.com/good-morning/blob/master/image/bank-alert.jpeg)
 
 
 
