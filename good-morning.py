@@ -482,10 +482,11 @@ job = scheduler.add_job(penalty_report, 'cron',
                            hour = 12,
                            id = 'weekly')
 
-# Flush weekly records on every Saturday 10PM
+# Flush weekly records on every Friday 12:05PM
 job = scheduler.add_job(flush_weekly, 'cron',
-                        day_of_week = 'sat',
+                        day_of_week = 'fri',
                         hour = 22,
+                        minute = 5,
                         id = 'flush_weekly')
 job = scheduler.add_job(backup, 'cron',
                         day_of_week = 'mon,tue,wed,thu,fri,sat,sun',
