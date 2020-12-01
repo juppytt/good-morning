@@ -467,7 +467,7 @@ def event():
 
 ### Backup
 def backup():
-    os.system(./backup.sh)
+    os.system('./backup.sh')
 
 
 ### Schduler
@@ -493,5 +493,6 @@ job = scheduler.add_job(backup, 'cron',
                         id = 'backup')
 
 scheduler.start()
+backup()
 if __name__ == "__main__":
     app.run()
