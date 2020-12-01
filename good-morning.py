@@ -493,6 +493,5 @@ job = scheduler.add_job(backup, 'cron',
                         id = 'backup')
 
 scheduler.start()
-backup()
 if __name__ == "__main__":
     app.run()
