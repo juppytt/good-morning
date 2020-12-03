@@ -25,7 +25,7 @@ A Slack Bot for wake up mission
 ## Screenshots
 ### Main
 ![Main](https://github.com/juppytt/good-morning/blob/master/image/main.png) 
-Default set to post main menu message on **every weekday 8 AM**.
+Default set to post main menu message on **every weekday 8 AM** .
 
 ### Set Time
 <img src="https://github.com/juppytt/good-morning/blob/master/image/set-time.png" width="500"> 
@@ -51,9 +51,9 @@ Default set to post weekly report on **every Friday 12 PM**.
 ### Skip Request
 <img src="https://github.com/juppytt/good-morning/blob/master/image/request-skip.jpeg" width="450">
 Users can request to skip the mission on the following day.  
-By default, skip is accpeted only **before 10PM** and **once in a week**.  
+By default, skip is accpeted only **before 10PM** and **once in a week**.
 
 ### Bank Alert
 ![Bank Alert](https://github.com/juppytt/good-morning/blob/master/image/bank-alert.jpeg )  
-By default, good-morning calculates the fee and rewards and penalties on **Friday 12:05PM**.  
+By default, good-morning calculates the weekly rewards and penalties on **Friday 12:05PM**.  
 For those with negative deposits, the bank posts an alert message. 
