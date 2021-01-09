@@ -282,18 +282,6 @@ def flush_weekly():
             attachments=[]
         )
 
-
-def set_real_name():
-    res = db.dump_db(db.DB_REC, db.fname_rec)
-    for i in range(len(res)):
-        data = res[i]
-        user_id = data["User Id"]
-        real_name = slack_user_name(user_id)
-        data["User Name"] = real_name
-        db.set_user_name_db(user_id, real_name)
-    res = db.get_weekly_db()
-    print(res)
-
 # process user message for mission
 def process_user_message(slack_event, user_id, user_name):
     file_type = slack_event["event"]["files"][0]["filetype"]
@@ -397,7 +385,7 @@ def interactive():
 
     elif message_type == "dialog_submission":
         time = message_action["submission"]["time"]
-        if (db.set_time_db(user_id, time) < 0):
+        if (db.set_time_db(user_id, real_name, time) < 0):
             text = ":warning: Error... Contact the admin please :("
             slack_client.api_call(
                 "chat.postMessage",
@@ -406,10 +394,10 @@ def interactive():
                 attachments=[]
             )
             return make_response("", 500)
-        try:
-            db.set_user_name_db(user_id, real_name)
-        except:
-            print("set_user_name error")
+        #try:
+        #    db.set_user_name_db(user_id, real_name)
+        #except:
+        #    print("set_user_name error")
 
         text=":white_check_mark: ["+ real_name +"] Wake-up time set!\n"
         text = text + ":sunny: *" + real_name + "*"
@@ -435,6 +423,7 @@ def event():
     print("\n /slack/event")
     print(slack_event)
 
+
     if ("challenge" in slack_event):
         return make_response(slack_event["challenge"], 200,
                              {"content-type": "application/json"})
@@ -444,14 +433,19 @@ def event():
         user_name = slack_user_name(user_id)
         print("user_name: ")
         print(user_name)
+        print("")
     except:
         return make_response("", 200)
 
-    if (event_type == "channel_left"):
+    if (event_type == "member_left_channel"):
         db.rmv_db_user(user_id)
     elif (event_type == "member_joined_channel"):
-        db.add_db_user(user_id)
+        db.add_db_user(user_id, user_name)
+        gm_main()
     elif (event_type == "message"):
+        if (slack_event["event"]["text"] == "help"):
+            gm_main()
+
         if (slack_event["event"]["channel"] == channel_id):
             if ("files" in slack_event["event"]):
                 process_user_message(slack_event, user_id, user_name)

@@ -5,13 +5,13 @@ from datetime import datetime
 
 ### CSV file configuration
 DB_SET = "time.csv"
-fname_set = ['User Id', 'Time']
+fname_set = ['User Id', 'User Name', 'Time']
 
 DB_REC = "rec.csv"
 fname_rec = ['User Id', 'User Name', 'Record']
 
 DB_BALANCE = "balance.csv"
-fname_balance = ['User Id', 'Amount']
+fname_balance = ['User Id', 'User Name', 'Amount']
 
 DB_CONF = "conf.csv"
 fname_conf = ['User Id','Value']
@@ -20,6 +20,8 @@ fname_conf = ['User Id','Value']
 ERROR_SKIPPED_BEFORE = -1
 ERROR_SKIP_LATE = -2
 
+## Configuration
+MAX_REWARD = 3000
 
 ### CSV database common functions
 def init_db(db, fname):
@@ -184,29 +186,19 @@ def rmv_db_user(user_id):
 ### ADD USER
 # update or create user info
 def add_db_user(user_id, user_name=""):
-    data = query_db(DB_REC, user_id)
     res = 0
-    if (data == "" or (data["User Name"] == "" and user_name is not "") ):
+    data = query_db(DB_REC, user_id)
+    if (data == ""):
         res = res |  add_db(DB_REC, fname_rec, {"User Id": user_id, "User Name": user_name, "Record": 0})
 
     data = query_db(DB_BALANCE, user_id)
     if (data == ""):
-        res = res |  add_db(DB_BALANCE, fname_balance, {"User Id": user_id, "Amount": 10000})
-
+        res = res |  add_db(DB_BALANCE, fname_balance, {"User Id": user_id, "User Name": user_name, "Amount": 10000})
 
     return res
 
-def set_user_name_db(user_id, user_name):
-    add_db_user(user_id, user_name)
-    data = query_db(DB_REC, user_id)
-    if (data["User Name"] != user_name):
-        data["User Name"] = user_name
-        mod_db(DB_REC, user_id, fname_rec, data)
-    return 0
-
-
 ### SET DB
-def set_time_db(user_id, time):
+def set_time_db(user_id, user_name, time):
     print("set_time_db")
 
     if time == "" or user_id == "":
@@ -227,10 +219,11 @@ def set_time_db(user_id, time):
             return 0
 
         # update time
-        return mod_db(DB_SET, user_id, fname_set, {'User Id': user_id, 'Time' : time})
+        data["Time"] = time
+        return mod_db(DB_SET, user_id, fname_set, data)
 
     # add data
-    return add_db(DB_SET, fname_set, {'User Id': user_id, 'Time' : time})
+    return add_db(DB_SET, fname_set, {'User Id': user_id, 'User Name': user_name, 'Time' : time})
 
 
 def get_time_db(user_id):
@@ -401,7 +394,7 @@ skip_name = "Test Honja"
 
 def get_penalty():
     ll = dump_db(DB_REC, fname_rec)
-    num = len(ll)
+
     total_penalty = 0
     weekday = datetime.now().weekday()
 
@@ -414,6 +407,7 @@ def get_penalty():
             del ll[i]
             break
 
+    num = len(ll)
     for i in range(len(ll)):
         rec = int(ll[i]['Record'])
         score, skip = extract_score(rec, weekday)
@@ -437,8 +431,15 @@ def get_penalty():
         else:
             break
 
+    reward = min(total_penalty/count, MAX_REWARD)
+    refund = total_penalty - reward*count
+
     for i in range(count):
-        sort[i]['Penalty'] = sort[i]['Penalty'] + (total_penalty/count)
+        sort[i]['Penalty'] = sort[i]['Penalty'] + reward
+
+    for i in range(num-count):
+        sort[num-i-1]['Penalty'] = sort[num-i-1]['Penalty']+(refund/(num-count))
+
     return sort
 
 
