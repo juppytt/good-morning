@@ -2,6 +2,7 @@ import csv
 import os
 import shutil
 from datetime import datetime
+import random
 
 ### CSV file configuration
 DB_SET = "time.csv"
@@ -424,21 +425,27 @@ def get_penalty():
     # sort by score (do not count holiday)
     sort = sorted(ll, key = lambda i : i['Score'], reverse = True)
     top = min(sort[0]['Score'], sort[0]['Total'])
-    count = 0
+    reward_cnt = 0
     for  i in range(len(ll)):
         if sort[i]['Score'] >= top:
-            count = count+1
+            reward_cnt = reward_cnt+1
         else:
             break
 
-    reward = min(total_penalty/count, MAX_REWARD)
-    refund = total_penalty - reward*count
-
-    for i in range(count):
+    reward = min(total_penalty/reward_cnt, MAX_REWARD)
+    refund = total_penalty - reward*reward_cnt
+    refund_cnt = num - reward_cnt
+    for i in range(reward_cnt):
         sort[i]['Penalty'] = sort[i]['Penalty'] + reward
 
-    for i in range(num-count):
-        sort[num-i-1]['Penalty'] = sort[num-i-1]['Penalty']+(refund/(num-count))
+    for i in range(refund_cnt):
+        sort[reward_cnt+i]['Penalty'] = sort[reward_cnt+i]['Penalty']+(refund/(refund_cnt))
+
+    # remainder handling
+    remain = refund - (refund/refund_cnt)*refund_cnt
+
+    for i in random.sample(range(reward_cnt, num), remain):
+        sort[i]['Penalty'] = sort[i]['Penalty']+1
 
     return sort
 
