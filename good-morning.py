@@ -22,7 +22,7 @@ WAKEUP_TIME = {}
 #user_id = "U019EJPBFFH"
 
 #test channel
-#channel_id = "C019NLH2ULE"
+channel_id = "C019NLH2ULE"
 
 #fame user_id
 user_id = "U0123456789"
@@ -288,70 +288,6 @@ def process_user_message(slack_event, user_id, user_name):
     print(file_type)
     if (file_type == "jpg" or file_type == "jpeg"):
         record_time(user_id, user_name)
-## Slack slash commands
-
-# Slack bot help message
-@app.route("/slack/help", methods=["POST"])
-def gm_main_called():
-    return gm_main()
-
-@app.route("/slack/check/time", methods=["POST"])
-def slash_check_time():
-    # Parse the request payload
-    message_action = request.form
-    print(message_action)
-
-    user_id = message_action["user_id"]
-    user_name = message_action["user_name"]
-    real_name = slack_user_name(user_id)
-    return check_time(user_id, real_name)
-
-@app.route("/slack/check/score", methods=["POST"])
-def slash_check_score():
-    # Parse the request payload
-    message_action = request.form
-    print(message_action)
-
-    user_id = message_action["user_id"]
-    user_name = message_action["user_name"]
-    real_name = slack_user_name(user_id)
-    return check_score(user_id, real_name)
-
-
-
-# from /set slash command
-@app.route("/slack/set", methods=["POST"])
-def slash_set_time():
-    message_action = request.form
-    print(message_action)
-
-    user_id = message_action["user_id"]
-    trigger_id = message_action["trigger_id"]
-    user_name = message_action["user_name"]
-    time = message_action["text"]
-    real_name = slack_user_name(user_id)
-    set_time(user_id, trigger_id, real_name, time)
-
-    return make_response("", 200)
-
-@app.route("/slack/rmv", methods=["POST"])
-def slash_rmv_user():
-    message_action = request.form
-    print(message_action)
-    return make_response("", 200)
-
-
-# record wake-up time
-@app.route("/slack/record", methods=["POST"])
-def slash_record():
-    message_action = request.form
-    print(message_action)
-
-    user_id = message_action["user_id"]
-    user_name = message_action["user_name"]
-    real_name = slack_user_name(user_id)
-    return record_time(user_id, real_name)
-
 
 ## Slack interactive
 @app.route("/slack/interactive", methods=["POST"])
