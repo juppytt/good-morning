@@ -2,9 +2,13 @@ from flask import Flask, request, make_response, Response
 import os
 import json
 import db
+import sys
+#import upload
 from apscheduler.schedulers.background import BackgroundScheduler
 from slackclient import SlackClient
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
 # Your app's Slack bot user token
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 #SLACK_VERIFICATION_TOKEN = os.environ["SLACK_VERIFICATION_TOKEN"]
@@ -22,7 +26,7 @@ WAKEUP_TIME = {}
 #user_id = "U019EJPBFFH"
 
 #test channel
-channel_id = "C019NLH2ULE"
+#channel_id = "C019NLH2ULE"
 
 #fame user_id
 user_id = "U0123456789"
@@ -266,13 +270,12 @@ def penalty_report():
         text = res,
         attachments=[]
     )
-
     return make_response("", 200)
 
 
 def flush_weekly():
     res = db.update_penalty_db()
-    db.erase_record_db()
+    db.erase_record_db(())
     db.erase_holiday_db()
     if res is not "":
         slack_client.api_call(
@@ -381,6 +384,8 @@ def event():
     elif (event_type == "message"):
         if (slack_event["event"]["text"] == "help"):
             gm_main()
+        elif (slack_event["event"]["text"] == "check"):
+            gm_check()
 
         if (slack_event["event"]["channel"] == channel_id):
             if ("files" in slack_event["event"]):
@@ -398,6 +403,9 @@ def event():
 ### Backup
 def backup():
     os.system('./backup.sh')
+    #upload.upload("rec_archive.csv")
+    #upload.upload("balance_archive.csv")
+
 
 
 ### Schduler

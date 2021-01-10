@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import csv
 import os
 import shutil
@@ -17,6 +18,11 @@ fname_balance = ['User Id', 'User Name', 'Amount']
 DB_CONF = "conf.csv"
 fname_conf = ['User Id','Value']
 
+DB_REC_ARC = "rec_archive.csv"
+fname_rec_arc = ['User Id']
+DB_BALANCE_ARC = "balance_archive.csv"
+fname_bal_arc = ['Usre Id']
+
 ## ERROR CODE
 ERROR_SKIPPED_BEFORE = -1
 ERROR_SKIP_LATE = -2
@@ -33,7 +39,11 @@ def init_db(db, fname):
     db_copy = db+".copy"
     shutil.copy2(db, db_copy)
 
-
+def get_fname(db):
+    with open(db, mode='r') as csv_file:
+        reader = csv.reader(csv_file)
+        return reader.next()
+    return ""
 
 def query_db(db, user_id):
     if not os.path.exists(db):
@@ -146,6 +156,35 @@ def set_db(db, fname, key, data):
     print("Success")
     return 0
 
+def append_col_db(db, fname, init):
+    print("append_db " + db)
+    if not os.path.exists(db):
+        print("Failed: No DB")
+        return -1
+
+    db_tmp = db+".tmp"
+    with open(db, mode='r') as inp, open(db_tmp, mode='w') as out:
+        reader = csv.reader(inp)
+        writer = csv.writer(out, lineterminator='\n')
+
+        all = []
+        row = next(reader)
+        row.append(fname)
+        all.append(row)
+
+        for row in reader:
+            row.append(init)
+            all.append(row)
+
+        writer.writerows(all)
+
+    os.rename(db_tmp, db)
+    db_copy = db+".copy"
+    shutil.copy2(db, db_copy)
+
+
+    print("Success")
+    return 0
 
 
 def dump_db(db, fname):
@@ -312,30 +351,30 @@ def process_rec(score):
     for i in range(5):
         if  i > weekday:
             if (holiday & (1<<i)):
-                text = text + "  :beach_with_umbrella:  "
+                text = text + " :beach_with_umbrella:"
             elif (score & (1<<(i+5))):
-                text = text + "  :last_quarter_moon_with_face:  "
+                text = text + " :last_quarter_moon_with_face:"
             else:
-                text = text + "  :white_medium_square:  "
+                text = text + " :white_medium_square:"
         else:
             if (score & (1<<i)):
-                text = text + "  :sunny:  "
+                text = text + " :sunny:"
                 count = count + 1
                 if (holiday & (1<<i)):
                     skip = skip + 1
             elif (holiday & (1<<i)):
-                text = text + "  :beach_with_umbrella:  "
+                text = text + " :beach_with_umbrella:"
                 skip = skip + 1
             elif (score & (1<<(i+5))):
-                text = text + "  :last_quarter_moon_with_face:  "
+                text = text + " :last_quarter_moon_with_face:"
                 skip = skip + 1
             else:
-                text = text + "  :cloud:  "
+                text = text + " :cloud:"
     return text, weekday, skip, count
 
 
 def dump_record(data):
-    text = "* Mon   Tue   Wed   Thr    Fri    Total*\n"
+    text = "*  M   T    W   T    F   Total*\n"
     score = int(data)
 
     visual, weekday, skip, count = process_rec(score)
@@ -348,7 +387,7 @@ def dump_record(data):
     return text
 
 def dump_balance(data):
-    text = "*%s won*" % data
+    text = "*%s ₩*" % data
     return text
 
 def extract_score(data, weekday):
@@ -431,12 +470,22 @@ def get_penalty():
             reward_cnt = reward_cnt+1
         else:
             break
-
-    reward = min(total_penalty/reward_cnt, MAX_REWARD)
-    refund = total_penalty - reward*reward_cnt
     refund_cnt = num - reward_cnt
+
+    reward = total_penalty/reward_cnt
+    #reward = min(total_penalty/reward_cnt, MAX_REWARD)
+    #refund = total_penalty - reward*reward_cnt
     for i in range(reward_cnt):
         sort[i]['Penalty'] = sort[i]['Penalty'] + reward
+
+    if refund_cnt == 0:
+        return sort
+
+    refund = 0
+    for i in range(reward_cnt):
+        if sort[i]['Penalty'] > MAX_REWARD:
+            refund = refund + sort[i]['Penalty'] - MAX_REWARD
+            sort[i]['Penalty'] = MAX_REWARD
 
     for i in range(refund_cnt):
         sort[reward_cnt+i]['Penalty'] = sort[reward_cnt+i]['Penalty']+(refund/(refund_cnt))
@@ -457,19 +506,19 @@ def get_weekly_db():
     if weekday > 4:
         total_score = 5
     data = get_penalty()
-    res = "*Mon   Tue   Wed   Thr   Fri         Score      Penalty        Name*\n"
+
+    res = "*Name     M   T    W   T    F   Score  Result*\n"
     for i in range(len(data)):
         name = data[i]['User Name']
         if name == "":
             name = "Unknown"
 
+        res = res + "*" + name + "*\n              "
         process_res = process_rec(int(data[i]['Record']))
-        res = res + process_res[0] + "      "
-        res = res + str(data[i]['Score']) + ("/%d       " % data[i]['Total'])
-        res = res + "*{:04d} won*     ".format(data[i]['Penalty'])
-        res = res + "*" + name + "*\n"
-
-
+        res = res + process_res[0] + "  "
+        res = res + str(data[i]['Score']) + ("/%d  " % data[i]['Total'])
+        res = res + "*{:04d} ₩*     ".format(data[i]['Penalty'])
+        res = res + "\n"
     return res
 
 def erase_holiday_db():
@@ -483,7 +532,13 @@ def erase_record_db():
 def update_penalty_db():
     print("update_penalty_db")
     res = ""
+
     data = get_penalty()
+
+    # archive weekly record & penalty
+    dump_penalty_db(data)
+    dump_weekly_db()
+
     for i in range(len(data)):
         balance_data = query_db(DB_BALANCE, data[i]['User Id'])
         if balance_data == "":
@@ -506,4 +561,42 @@ def update_penalty_db():
     print("Update_penalty_db Success")
     return res
 
+def dump_weekly_db():
+    current = datetime.now()
+    date = current.strftime("%m/%d/%Y")
+
+    # dump mission record
+    append_col_db(DB_REC_ARC, date, 0)
+    fname = get_fname(DB_REC_ARC)
+    data = dump_db(DB_REC, fname_rec)
+
+    for i in range(len(data)):
+        arc_data = query_db(DB_REC_ARC, data[i]['User Id'])
+        if arc_data == "":
+            arc_data = dict.fromkeys(fname, 0)
+            arc_data['User Id'] = data[i]['User Id']
+            arc_data['User Name'] = data[i]['User Name']
+            add_db(DB_REC_ARC, fname, arc_data)
+
+        arc_data[date] = data[i]['Record']
+        mod_db(DB_REC_ARC, data[i]['User Id'], fname, arc_data)
+
+def dump_penalty_db(penalty):
+    # dump penalty
+    current = datetime.now()
+    date = current.strftime("%m/%d/%Y")
+    append_col_db(DB_BALANCE_ARC, date, 0)
+    fname = get_fname(DB_BALANCE_ARC)
+
+    for i in range(len(penalty)):
+        arc_data = query_db(DB_BALANCE_ARC, penalty[i]['User Id'])
+        if arc_data == "":
+            arc_data = dict.fromkeys(fname, 0)
+            arc_data['User Id'] = penalty[i]['User Id']
+            arc_data['User Name'] = penalty[i]['User Name']
+            arc_data['initial'] = 10000
+            add_db(DB_BALANCE_ARC, fname, arc_data)
+
+        arc_data[date] = penalty[i]['Penalty']
+        mod_db(DB_BALANCE_ARC, penalty[i]['User Id'], fname, arc_data)
 
